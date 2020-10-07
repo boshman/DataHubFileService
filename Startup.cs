@@ -43,7 +43,7 @@ namespace DataHubFileService
             //TODO: Remove AllowAnyOrigin and retest
             app.UseCors( options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());            
             
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

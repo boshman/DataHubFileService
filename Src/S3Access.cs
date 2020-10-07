@@ -4,23 +4,23 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using DataHubFileService.Models;
-
+using System.Threading.Tasks;
 
 namespace DataHubFileService
 {
     public class S3Access
     {
-        public static List<DataHubFile> GetFileList(string sourcePath)
+        public static async Task<List<DataHubFile>> GetFileList(string sourcePath)
         {
             List<DataHubFile> fileList = new List<DataHubFile>();
 
             using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
-                var response = client.ListObjectsV2Async(new ListObjectsV2Request
+                var response = await client.ListObjectsV2Async(new ListObjectsV2Request
                 {
                     BucketName = "maxcapdatahub-dev",
                     Prefix = sourcePath
-                }).GetAwaiter().GetResult();
+                });
 
                 foreach (var file in response.S3Objects)
                 {
@@ -39,8 +39,9 @@ namespace DataHubFileService
             return fileList;
         }
 
-        public static void UploadFile(string destPath, System.IO.Stream stream)
+        public static async Task<string> UploadFile(string destPath, System.IO.Stream stream)
         {
+            string result = string.Empty;
             using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
             {
                 var request = new UploadPartRequest 
@@ -50,8 +51,26 @@ namespace DataHubFileService
                     InputStream = stream
                 };
 
-                client.UploadPartAsync(request).GetAwaiter().GetResult();
+                var response = await client.UploadPartAsync(request);
+                //result = response.HttpStatusCode.ToString();
             }
+            return result;
+        }
+
+        public static async Task<string> DeleteFile(string path)
+        {
+            string result = string.Empty;
+            using (var client = new AmazonS3Client(RegionEndpoint.USEast1))
+            {
+                var request = new DeleteObjectRequest 
+                {
+                    BucketName = "maxcapdatahub-dev",
+                    Key = path
+                };
+
+                var response = await client.DeleteObjectAsync(request);
+            }
+            return result;
         }
 
         public static void SortFileList(List<DataHubFile> fileList)
